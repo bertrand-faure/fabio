@@ -676,7 +676,7 @@ class TiffIO(object):
                 readout.byteswap(True)
             if hasattr(nBits, 'index'):
                 readout.shape = -1, nColumns, len(nBits)
-            elif info['colormap'] is not None:
+            elif colormap is not None:
                 readout = colormap[readout]
                 readout.shape = -1, nColumns, 3
             else:
@@ -728,7 +728,7 @@ class TiffIO(object):
 
                     if hasattr(nBits, 'index'):
                         readout.shape = -1, nColumns, len(nBits)
-                    elif info['colormap'] is not None:
+                    elif colormap is not None:
                         readout = colormap[readout]
                         readout.shape = -1, nColumns, 3
                     else:
