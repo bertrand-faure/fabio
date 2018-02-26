@@ -511,9 +511,10 @@ class TiffIO(object):
         info[TAG_ID[TAG_COLORMAP]] = colormap
         info[TAG_ID[TAG_SAMPLE_FORMAT]] = sampleFormat
         info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]] = interpretation
-        infoDict = {}
+
         testString = 'PyMca'
         if software is not None and software.startswith(testString):
+            infoDict = {}
             # str to make sure python 2.x sees it as string and not unicode
             descriptionString = imageDescription
             # interpret the image description in terms of supplied
@@ -524,7 +525,7 @@ class TiffIO(object):
                 # get rid of the \n at the end of the value
                 value = "%s" % items[i * 2 + 1][:-1]
                 infoDict[key] = value
-        info['info'] = infoDict
+            info['info'] = infoDict
 
         if (self._maxImageCacheLength > 0) and useInfoCache:
             self._imageInfoCacheIndex.insert(0, nImage)
