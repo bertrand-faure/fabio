@@ -405,14 +405,9 @@ class TiffIO(object):
             sampleFormat = SAMPLE_FORMAT_VOID
 
         # compression
-        compression = False
-        compression_type = 1
+        compression = 1
         if TAG_COMPRESSION in tagIDList:
-            compression_type = valueOffsetList[tagIDList.index(TAG_COMPRESSION)]
-            if compression_type == 1:
-                compression = False
-            else:
-                compression = True
+            compression = valueOffsetList[tagIDList.index(TAG_COMPRESSION)]
 
         # photometric interpretation
         interpretation = 1
@@ -502,22 +497,20 @@ class TiffIO(object):
             useInfoCache = True
 
         info = {}
-        info["nRows"] = nRows
-        info["nColumns"] = nColumns
-        info["nBits"] = nBits
-        info["compression"] = compression
-        info["compression_type"] = compression_type
-        info["imageDescription"] = imageDescription
-        info["stripOffsets"] = stripOffsets  # This contains the file offsets to the data positions
-        info["rowsPerStrip"] = rowsPerStrip
-        info["stripByteCounts"] = stripByteCounts  # bytes in strip since I do not support compression
-        info["software"] = software
-        info["date"] = date
-        info["colormap"] = colormap
-        info["sampleFormat"] = sampleFormat
-        info["photometricInterpretation"] = interpretation
-        info["model"] = model
-
+        info[TAG_ID[TAG_NUMBER_OF_ROWS]] = nRows
+        info[TAG_ID[TAG_NUMBER_OF_COLUMNS]] = nColumns
+        info[TAG_ID[TAG_BITS_PER_SAMPLE]] = nBits
+        info[TAG_ID[TAG_COMPRESSION]] = compression
+        info[TAG_ID[TAG_IMAGE_DESCRIPTION]] = imageDescription
+        info[TAG_ID[TAG_STRIP_OFFSETS]] = stripOffsets  # This contains the file offsets to the data positions
+        info[TAG_ID[TAG_ROWS_PER_STRIP]] = rowsPerStrip
+        info[TAG_ID[TAG_STRIP_BYTE_COUNTS]] = stripByteCounts  # bytes in strip since I do not support compression
+        info[TAG_ID[TAG_MODEL]] = model
+        info[TAG_ID[TAG_SOFTWARE]] = software
+        info[TAG_ID[TAG_DATE]] = date
+        info[TAG_ID[TAG_COLORMAP]] = colormap
+        info[TAG_ID[TAG_SAMPLE_FORMAT]] = sampleFormat
+        info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]] = interpretation
         infoDict = {}
         testString = 'PyMca'
         if software is not None and software.startswith(testString):
@@ -565,16 +558,16 @@ class TiffIO(object):
         except:
             self._forceMonoOutput = oldMono
             raise
-        compression = info['compression']
-        compression_type = info['compression_type']
-        if compression:
-            if compression_type != 32773:
+
+        compression = info[TAG_ID[TAG_COMPRESSION]]
+        if compression != 1:
+            if compression != 32773:
                 raise IOError("Compressed TIFF images not supported except packbits")
             else:
                 # PackBits compression
                 logger.debug("Using PackBits compression")
 
-        interpretation = info["photometricInterpretation"]
+        interpretation = info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]]
         if interpretation == 2:
             # RGB
             pass
@@ -587,11 +580,11 @@ class TiffIO(object):
             # Palette Color Image
             raise IOError("Only grayscale images supported")
 
-        nRows = info["nRows"]
-        nColumns = info["nColumns"]
-        nBits = info["nBits"]
-        colormap = info["colormap"]
-        sampleFormat = info["sampleFormat"]
+        nRows = info[TAG_ID[TAG_NUMBER_OF_ROWS]]
+        nColumns = info[TAG_ID[TAG_NUMBER_OF_COLUMNS]]
+        nBits = info[TAG_ID[TAG_BITS_PER_SAMPLE]]
+        colormap = info[TAG_ID[TAG_COLORMAP]]
+        sampleFormat = info[TAG_ID[TAG_SAMPLE_FORMAT]]
 
         if rowMin is None:
             rowMin = 0
@@ -656,9 +649,9 @@ class TiffIO(object):
 
         fd = self.fd
         st = self._structChar
-        stripOffsets = info["stripOffsets"]  # This contains the file offsets to the data positions
-        rowsPerStrip = info["rowsPerStrip"]
-        stripByteCounts = info["stripByteCounts"]  # bytes in strip since I do not support compression
+        stripOffsets = info[TAG_ID[TAG_STRIP_OFFSETS]]  # This contains the file offsets to the data positions
+        rowsPerStrip = info[TAG_ID[TAG_ROWS_PER_STRIP]]
+        stripByteCounts = info[TAG_ID[TAG_STRIP_BYTE_COUNTS]]  # bytes in strip since I do not support compression
 
         rowStart = 0
         if len(stripOffsets) == 1:
@@ -1064,18 +1057,18 @@ class TiffIO(object):
             raise ValueError("Unsupported data type %s" % dtype)
 
         info = {}
-        info["nColumns"] = nColumns
-        info["nRows"] = nRows
-        info["nBits"] = bitsPerSample
-        info["compression"] = compression
-        info["photometricInterpretation"] = interpretation
-        info["stripOffsets"] = stripOffsets
+        info[TAG_ID[TAG_NUMBER_OF_COLUMNS]] = nColumns
+        info[TAG_ID[TAG_NUMBER_OF_ROWS]] = nRows
+        info[TAG_ID[TAG_BITS_PER_SAMPLE]] = bitsPerSample
+        info[TAG_ID[TAG_COMPRESSION]] = compression
+        info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]] = interpretation
+        info[TAG_ID[TAG_STRIP_OFFSETS]] = stripOffsets
         if interpretation == 2:
             info["samplesPerPixel"] = 3  # No support for extra samples
-        info["rowsPerStrip"] = rowsPerStrip
-        info["stripByteCounts"] = stripByteCounts
-        info["date"] = date
-        info["sampleFormat"] = sampleFormat
+        info[TAG_ID[TAG_ROWS_PER_STRIP]] = rowsPerStrip
+        info[TAG_ID[TAG_STRIP_BYTE_COUNTS]] = stripByteCounts
+        info[TAG_ID[TAG_DATE]] = date
+        info[TAG_ID[TAG_SAMPLE_FORMAT]] = sampleFormat
 
         outputIFD = ""
         if sys.version > '2.6':
@@ -1086,36 +1079,36 @@ class TiffIO(object):
 
         fmt = st + "HHII"
         outputIFD += struct.pack(fmt, TAG_NUMBER_OF_COLUMNS,
-                                 FIELD_TYPE_OUT['I'], 1, info["nColumns"])
+                                 FIELD_TYPE_OUT['I'], 1, info[TAG_ID[TAG_NUMBER_OF_COLUMNS]])
         outputIFD += struct.pack(fmt, TAG_NUMBER_OF_ROWS,
-                                 FIELD_TYPE_OUT['I'], 1, info["nRows"])
+                                 FIELD_TYPE_OUT['I'], 1, info[TAG_ID[TAG_NUMBER_OF_ROWS]])
 
-        if info["photometricInterpretation"] == 1:
+        if info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]] == 1:
             fmt = st + 'HHIHH'
             outputIFD += struct.pack(fmt, TAG_BITS_PER_SAMPLE,
-                                     FIELD_TYPE_OUT['H'], 1, info["nBits"], 0)
-        elif info["photometricInterpretation"] == 2:
+                                     FIELD_TYPE_OUT['H'], 1, info[TAG_ID[TAG_BITS_PER_SAMPLE]], 0)
+        elif info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]] == 2:
             fmt = st + 'HHII'
             outputIFD += struct.pack(fmt, TAG_BITS_PER_SAMPLE,
                                      FIELD_TYPE_OUT['H'], 3,
-                                     info["stripOffsets"][0] - 2 * stripOffsetsLength - descriptionLength -
+                                     info[TAG_ID[TAG_STRIP_OFFSETS]][0] - 2 * stripOffsetsLength - descriptionLength -
                                      dateLength - softwareLength - bitsPerSampleLength)
         else:
             raise RuntimeError("Unsupported photometric interpretation")
 
         fmt = st + 'HHIHH'
         outputIFD += struct.pack(fmt, TAG_COMPRESSION,
-                                 FIELD_TYPE_OUT['H'], 1, info["compression"], 0)
+                                 FIELD_TYPE_OUT['H'], 1, info[TAG_ID[TAG_COMPRESSION]], 0)
         fmt = st + 'HHIHH'
         outputIFD += struct.pack(fmt, TAG_PHOTOMETRIC_INTERPRETATION,
-                                 FIELD_TYPE_OUT['H'], 1, info["photometricInterpretation"], 0)
+                                 FIELD_TYPE_OUT['H'], 1, info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]], 0)
         if imageDescription is not None:
             descriptionLength = len(imageDescription)
             if descriptionLength > 4:
                 fmt = st + 'HHII'
                 outputIFD += struct.pack(fmt, TAG_IMAGE_DESCRIPTION,
                                          FIELD_TYPE_OUT['s'], descriptionLength,
-                                         info["stripOffsets"][0] - 2 * stripOffsetsLength -
+                                         info[TAG_ID[TAG_STRIP_OFFSETS]][0] - 2 * stripOffsetsLength -
                                          descriptionLength)
             else:
                 # it has to have length 4
@@ -1129,15 +1122,15 @@ class TiffIO(object):
             fmt = st + 'HHII'
             outputIFD += struct.pack(fmt, TAG_STRIP_OFFSETS,
                                      FIELD_TYPE_OUT['I'], 1,
-                                     info["stripOffsets"][0])
+                                     info[TAG_ID[TAG_STRIP_OFFSETS]][0])
         else:
             fmt = st + 'HHII'
             outputIFD += struct.pack(fmt, TAG_STRIP_OFFSETS,
                                      FIELD_TYPE_OUT['I'],
                                      len(stripOffsets),
-                                     info["stripOffsets"][0] - 2 * stripOffsetsLength)
+                                     info[TAG_ID[TAG_STRIP_OFFSETS]][0] - 2 * stripOffsetsLength)
 
-        if info["photometricInterpretation"] == 2:
+        if info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]] == 2:
             fmt = st + 'HHIHH'
             outputIFD += struct.pack(fmt, TAG_SAMPLES_PER_PIXEL,
                                      FIELD_TYPE_OUT['H'], 1,
@@ -1146,18 +1139,18 @@ class TiffIO(object):
         fmt = st + 'HHII'
         outputIFD += struct.pack(fmt, TAG_ROWS_PER_STRIP,
                                  FIELD_TYPE_OUT['I'], 1,
-                                 info["rowsPerStrip"])
+                                 info[TAG_ID[TAG_ROWS_PER_STRIP]])
 
         if len(stripOffsets) == 1:
             fmt = st + 'HHII'
             outputIFD += struct.pack(fmt, TAG_STRIP_BYTE_COUNTS,
                                      FIELD_TYPE_OUT['I'], 1,
-                                     info["stripByteCounts"])
+                                     info[TAG_ID[TAG_STRIP_BYTE_COUNTS]])
         else:
             fmt = st + 'HHII'
             outputIFD += struct.pack(fmt, TAG_STRIP_BYTE_COUNTS,
                                      FIELD_TYPE_OUT['I'], len(stripOffsets),
-                                     info["stripOffsets"][0] - stripOffsetsLength)
+                                     info[TAG_ID[TAG_STRIP_OFFSETS]][0] - stripOffsetsLength)
 
         if software is not None:
             if softwareLength > 4:
@@ -1165,7 +1158,7 @@ class TiffIO(object):
                 outputIFD += struct.pack(fmt, TAG_SOFTWARE,
                                          FIELD_TYPE_OUT['s'],
                                          softwareLength,
-                                         info["stripOffsets"][0] -
+                                         info[TAG_ID[TAG_STRIP_OFFSETS]][0] -
                                          2 * stripOffsetsLength -
                                          descriptionLength - softwareLength - dateLength)
             else:
@@ -1181,20 +1174,20 @@ class TiffIO(object):
             outputIFD += struct.pack(fmt, TAG_DATE,
                                      FIELD_TYPE_OUT['s'],
                                      dateLength,
-                                     info["stripOffsets"][0] -
+                                     info[TAG_ID[TAG_STRIP_OFFSETS]][0] -
                                      2 * stripOffsetsLength -
                                      descriptionLength - dateLength)
 
         fmt = st + 'HHIHH'
         outputIFD += struct.pack(fmt, TAG_SAMPLE_FORMAT,
                                  FIELD_TYPE_OUT['H'], 1,
-                                 info["sampleFormat"], 0)
+                                 info[TAG_ID[TAG_SAMPLE_FORMAT]], 0)
         fmt = st + 'I'
         outputIFD += struct.pack(fmt, 0)
 
-        if info["photometricInterpretation"] == 2:
-            outputIFD += struct.pack('HHH', info["nBits"],
-                                     info["nBits"], info["nBits"])
+        if info[TAG_ID[TAG_PHOTOMETRIC_INTERPRETATION]] == 2:
+            outputIFD += struct.pack('HHH', info[TAG_ID[TAG_BITS_PER_SAMPLE]],
+                                     info[TAG_ID[TAG_BITS_PER_SAMPLE]], info[TAG_ID[TAG_BITS_PER_SAMPLE]])
 
         if softwareLength > 4:
             outputIFD += softwarePackedString
