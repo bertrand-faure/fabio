@@ -51,7 +51,7 @@ TAG_ID = {256: "NumberOfColumns",  # S or L ImageWidth
           278: "RowsPerStrip",  # S or L, number of rows in each back may be not for the last
           279: "StripByteCounts",  # S or L, The number of bytes in the strip AFTER any compression
           305: "Software",  # ASCII
-          306: "Date",  # ASCII
+          306: "DateTime",  # ASCII
           320: "Colormap",  # Colormap of Palette-color Images
           339: "SampleFormat",  # SHORT Interpretation of data in each pixel
           }
