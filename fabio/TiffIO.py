@@ -337,8 +337,9 @@ class TiffIO(object):
                     text = text.replace(u"\ufffd", "?")
 
                 cleaned_output.append(text)
-            if isinstance(output, tuple):
-                output = tuple(cleaned_output)
+            
+            if isinstance(output, (tuple, list)):
+                output = "".join(cleaned_output)
             else:
                 output = cleaned_output
         return output
@@ -415,13 +416,10 @@ class TiffIO(object):
             interpretation = valueOffsetList[tagIDList.index(TAG_PHOTOMETRIC_INTERPRETATION)]
         else:
             logger.debug("WARNING: Non standard TIFF. Photometric interpretation TAG missing")
-        helpString = ""
 
         if TAG_IMAGE_DESCRIPTION in tagIDList:
             imageDescription = self._readIFDEntry(TAG_IMAGE_DESCRIPTION,
                                                   tagIDList, fieldTypeList, nValuesList, valueOffsetList)
-            if type(imageDescription) in [type([1]), type((1,))]:
-                imageDescription = helpString.join(imageDescription)
         else:
             imageDescription = "%d/%d" % (nImage + 1, len(self._IFD))
 
@@ -434,8 +432,6 @@ class TiffIO(object):
         if TAG_SOFTWARE in tagIDList:
             software = self._readIFDEntry(TAG_SOFTWARE,
                                           tagIDList, fieldTypeList, nValuesList, valueOffsetList)
-            if isinstance(software, (tuple, list)):
-                software = helpString.join(software)
         else:
             try:
                 if imageDescription.upper().startswith("IMAGEJ"):
@@ -447,8 +443,6 @@ class TiffIO(object):
         if TAG_DATE in tagIDList:
             date = self._readIFDEntry(TAG_DATE,
                                       tagIDList, fieldTypeList, nValuesList, valueOffsetList)
-            if type(date) in [type([1]), type((1,))]:
-                date = helpString.join(date)
 
         stripOffsets = self._readIFDEntry(TAG_STRIP_OFFSETS,
                                           tagIDList,
