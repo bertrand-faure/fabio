@@ -652,12 +652,11 @@ class TiffIO(object):
         if len(stripOffsets) == 1:
             bytesPerRow = int(stripByteCounts[0] / rowsPerStrip)
             nBytes = stripByteCounts[0]
-            if nRows == rowsPerStrip:
-                actualBytesPerRow = int(image.nbytes / nRows)
-                if actualBytesPerRow != bytesPerRow:
-                    logger.warning("Bogus StripByteCounts information")
-                    bytesPerRow = actualBytesPerRow
-                    nBytes = (rowMax - rowMin + 1) * bytesPerRow
+            actualBytesPerRow = int(image.nbytes / nRows)
+            if actualBytesPerRow != bytesPerRow:
+                logger.warning("Bogus StripByteCounts or RowsPerStrip information")
+                bytesPerRow = actualBytesPerRow
+                nBytes = (rowMax - rowMin + 1) * bytesPerRow
             fd.seek(stripOffsets[0] + rowMin * bytesPerRow)
             readout = numpy.frombuffer(fd.read(nBytes), dtype).copy()
             if self._swap:
