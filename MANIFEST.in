@@ -9,7 +9,6 @@ recursive-include fabio/ext *.c *.h *.pyx
 recursive-exclude test/tiftest *
 recursive-exclude test/testimages *
 recursive-exclude testimages *
-recursive-exclude fabio.egg-info *
 recursive-exclude build *
 recursive-exclude dist *
 recursive-exclude pylint *
