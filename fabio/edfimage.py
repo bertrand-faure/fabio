@@ -337,11 +337,12 @@ class EdfFrame(fabioimage.FabioFrame):
             capsHeader = self._compute_capsheader()
 
         # Compute blobsize
-        if "SIZE" in capsHeader:
-            try:
-                self.blobsize = nice_int(self.header[capsHeader["SIZE"]])
-            except ValueError:
-                logger.warning("Unable to convert to integer : %s %s " % (capsHeader["SIZE"], self.header[capsHeader["SIZE"]]))
+        if self.blobsize is None:
+            if "SIZE" in capsHeader:
+                try:
+                    self.blobsize = nice_int(self.header[capsHeader["SIZE"]])
+                except ValueError:
+                    logger.warning("Unable to convert to integer : %s %s " % (capsHeader["SIZE"], self.header[capsHeader["SIZE"]]))
 
         rank=self.get_data_rank(self.header,capsHeader)
         shape=self.get_data_shape(rank,self.header,capsHeader)
